@@ -242,6 +242,8 @@ class Chess(Game):
 
         if self.showDeltatime:
             display.set_caption("Chess game - {0}".format(deltatime))
+        if self.showFps:
+            display.set_caption("Chess game - {0}".format(1.0/deltatime if deltatime else 1))
 
 
 def main(argv):

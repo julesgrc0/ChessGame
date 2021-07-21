@@ -16,6 +16,7 @@ class Game:
         self.renderer = display.set_mode(size)
         self.blockFPS = False
         self.fpsmax = 0
+
     def fps_max(self,value):
         if value <= 0:
             self.blockFPS = False
@@ -25,8 +26,8 @@ class Game:
 
     def start(self):
         while self.running:
-            self.current_time = time.clock_gettime(
-                time.CLOCK_PROCESS_CPUTIME_ID)
+            # time.clock_gettime(time.CLOCK_PROCESS_CPUTIME_ID)
+            self.current_time = float(time.time())
             deltatime = (self.current_time - self.last_time)
             self.last_time = self.current_time
 
