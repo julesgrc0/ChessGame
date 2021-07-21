@@ -40,9 +40,28 @@ class ChessItem:
     def get_actions(self, grid):
         pass
 
+    def loop_action(self,actions, start, end,index,index_value, grid):
+        i = start
+        while True:
+            if i == end:
+                break
+            position = [i, i]
+            position[index] = index_value
+
+            if self.position != position:
+                res = self.valid_action(ChessAction(position), grid)
+                if not res == ChessValidAction.INVALID:
+                    self.add_action(position, actions, grid)
+                    if res == ChessValidAction.VALIDE_ATTACK:
+                        break
+                else:
+                    break
+            i+=1
+
     def valid_action(self, action, grid):
         if self.out_position(action.position):
             return ChessValidAction.INVALID
+
         item = grid[action.position[0]][action.position[1]]
         if item.type != ChessItemType.EMPTY:
             if item.white != self.white:
@@ -125,16 +144,26 @@ class Bishop(ChessItem):
         return actions
 
 
+
 class Rook(ChessItem):
     def __init__(self, white, position):
         ChessItem.__init__(self, ChessItemType.Rook, white, position)
 
     def get_actions(self, grid):
         actions = []
+        self.loop_action(
+            actions, self.position[0], 8, 1, self.position[1], grid)
+        
 
-        for i in range(0, 8):
-            actions.append(ChessAction([self.position[0],i]))
-            actions.append(ChessAction([i,self.position[1]]))
+        self.loop_action(
+            actions, self.position[1], 8, 0, self.position[0], grid)
+
+        self.loop_action(
+            actions,  0, self.position[0]+1, 1, self.position[1], grid)
+        self.loop_action(
+            actions, 0, self.position[1]+1, 0, self.position[0], grid)
+        
+
         return actions
 
 

@@ -41,10 +41,11 @@ class Chess(Game):
     tile_count = 8
     grid=[]
     images = []
+    winsize = 700
 
     def __init__(self, args):
-        winsize = 700
-        size = int(winsize/8)*8
+        self.process_args(args)
+        size = int(self.winsize/8)*8
         Game.__init__(self, [size,size])
         self.tile_size = int(self.renderer.get_width()/self.tile_count)
 
@@ -52,7 +53,7 @@ class Chess(Game):
         self.init_grid()
         self.chess_grid()
         self.load_images()
-        self.process_args(args)
+        
         display.set_caption("Chess game")
 
     def process_args(self, args):
@@ -65,14 +66,18 @@ class Chess(Game):
 
         if len(args) > 3 and int(args[3])==1:
             self.showFps = True
+        
+        if len(args) >4 and int(args[4]) >= 200 and int(args[4]) <= 1080:
+            self.winsize = int(args[4])
 
     def load_images(self):
         path = os.path.dirname(os.path.abspath(__file__))+"/assets/"
         files = [f for f in listdir(path) if isfile(join(path, f))]
         files.sort()
+        print("Load assets in {0}".format(path))
         for file in files:
             if file.endswith(".png"):
-                print(file)
+                print("[+] {0}".format(file))
                 self.images.append(image.load(path+file))
         
     def draw_image(self,index,x,y):
@@ -153,7 +158,7 @@ class Chess(Game):
 
     def chess_grid(self):
         self.grid[0][0] = Rook(True,[0,0])
-        self.grid[1][0] = Knight(True,[1,0])
+        # self.grid[1][0] = Knight(True,[1,0])
         self.grid[2][0] = Bishop(True,[2,0])
         self.grid[3][0] = King(True,[3,0])
         self.grid[4][0] = King(True,[4,0])
@@ -177,16 +182,7 @@ class Chess(Game):
     def mouse_coord(self):
         return [int(mouse.get_pos()[0]/self.tile_size)*self.tile_size,int(mouse.get_pos()[1]/self.tile_size)*self.tile_size]
 
-    def draw(self):
-        self.draw_grid()
-        
-        coord = self.mouse_coord()
-        draw.rect(self.renderer,(190, 140,90),pygame.Rect(coord[0],coord[1],self.tile_size,self.tile_size))
-        self.draw_rect(coord[0],coord[1],self.tile_size)
-        
-        self.draw_chess()
-        if self.currentAction:
-            self.draw_actions()
+    
 
     def draw_actions(self):
         for act in self.actions:
@@ -201,6 +197,20 @@ class Chess(Game):
     def mouse_get_grid(self):
         coord=self.mouse_coord()
         return self.grid[int(coord[0]/self.tile_size)][int(coord[1]/self.tile_size)]
+
+    def draw(self):
+        self.draw_grid()
+        coord = self.mouse_coord()
+        draw.rect(self.renderer, (190, 140, 90), pygame.Rect(
+            coord[0], coord[1], self.tile_size, self.tile_size))
+        self.draw_rect(coord[0], coord[1], self.tile_size)
+
+        
+        self.draw_chess()
+        if self.currentAction:
+            self.draw_actions()
+
+        
 
     def update(self, deltatime):
         for evt in event.get():
