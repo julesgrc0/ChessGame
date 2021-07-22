@@ -5,12 +5,12 @@ import time
 import time
 import random
 
-
 from os import listdir
 from os.path import isfile, join
 from pygame import Surface, draw, display, event, key,mouse,cursors,image,transform
 from pygame.cursors import Cursor
 from chess import *
+from copy import copy, deepcopy
 
 from chess import *
 from game import Game
@@ -40,6 +40,7 @@ class Chess(Game):
     showFps = False
     tile_count = 8
     grid=[]
+    las_grid = []
     images = []
     winsize = 700
 
@@ -56,6 +57,21 @@ class Chess(Game):
         
         display.set_caption("Chess game")
 
+    def isChess(self,white=True):
+        actions = []
+        king_position = []
+        for i in range(0,self.tile_count):
+            for k in range(0,self.tile_count):
+                if self.grid[i][k].type != ChessItemType.EMPTY and self.grid[i][k].white != white:
+                   actions = actions + self.grid[i][k].get_actions(self.grid)
+                elif  self.grid[i][k].type != ChessItemType.King and self.grid[i][k].white == white:
+                    king_position = [i,k]
+       
+        for i in actions:
+            if actions[i].position == king_position:
+                return True
+        return False
+
     def process_args(self, args):
         
         if len(args) > 1 and int(args[1])==1:
@@ -69,7 +85,8 @@ class Chess(Game):
         
         if len(args) >4 and int(args[4]) >= 200 and int(args[4]) <= 1080:
             self.winsize = int(args[4])
-
+    def load_svg(fileath,size):
+        pass
     def load_images(self):
         path = os.path.dirname(os.path.abspath(__file__))+"/assets/"
         files = [f for f in listdir(path) if isfile(join(path, f))]
@@ -158,7 +175,7 @@ class Chess(Game):
 
     def chess_grid(self):
         self.grid[0][0] = Rook(True,[0,0])
-        # self.grid[1][0] = Knight(True,[1,0])
+        self.grid[1][0] = Knight(True,[1,0])
         self.grid[2][0] = Bishop(True,[2,0])
         self.grid[3][0] = King(True,[3,0])
         self.grid[4][0] = King(True,[4,0])
@@ -219,7 +236,7 @@ class Chess(Game):
             if evt.type == pygame.MOUSEBUTTONDOWN:
                 if not self.currentAction:
                     self.currentItem = self.mouse_get_grid()
-                    if self.currentItem.type != ChessItemType.EMPTY:
+                    if self.currentItem.type != ChessItemType.EMPTY and self.whiteAction == self.currentItem.white:
                         self.currentAction =True
                         self.actions = self.currentItem.get_actions(self.grid)
                         if len(self.actions) == 0:
@@ -239,13 +256,16 @@ class Chess(Game):
                     if index != -1 and self.currentItem.type != ChessItemType.EMPTY:
                         g=self.currentItem.do_action(self.actions[index],self.grid)
                         if g != None:
+                            self.last_grid = deepcopy(self.grid)
                             self.grid = g
                         self.update_grid()
                         self.currentAction = False
                         self.actions = []
                         self.currentItem = Empty()
+                        # next turn
+                        self.whiteAction = not self.whiteAction
                     else:
-                        # click out
+                        #click out
                         self.currentAction = False
                         self.actions = []
                         self.currentItem = Empty()
@@ -257,6 +277,7 @@ class Chess(Game):
 
 
 def main(argv):
+    
     game = Chess(argv)
     game.start()
 

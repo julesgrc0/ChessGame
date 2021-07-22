@@ -112,26 +112,40 @@ class ChessItem:
 
 
 class Pwan(ChessItem):
+
     def __init__(self, white, position):
+        self.first_move = False
         ChessItem.__init__(self, ChessItemType.Pawn, white, position)
 
     def get_actions(self, grid):
         actions = []
-
         add = (1 if self.white else -1)
 
-        actions = self.add_action(
-            [self.position[0], self.position[1]+add], actions, grid)
+        if self.valid_action(ChessAction([self.position[0], self.position[1]+add]), grid) == ChessValidAction.VALID:
+            actions = self.add_action(
+                [self.position[0], self.position[1]+add], actions, grid)
+
+        if not self.first_move:
+            if self.valid_action(ChessAction([self.position[0], self.position[1]+(add*2)]), grid) == ChessValidAction.VALID:
+                actions = self.add_action(
+                    [self.position[0], self.position[1]+(add*2)], actions, grid)
 
         list_try = [[self.position[0]+1, self.position[1]+add],
                     [self.position[0]-1, self.position[1]+add]]
-
+        
         for i in list_try:
             if not self.out_position(i):
                 if self.valid_action(ChessAction(i), grid) == ChessValidAction.VALIDE_ATTACK:
                     actions.append(ChessAction(i))
 
         return actions
+    
+    def do_action(self, action: ChessAction, grid):
+        self.first_move = True
+        grid[self.position[0]][self.position[1]] = Empty()
+        grid[action.position[0]][action.position[1]] = self
+        self.position = action.position
+        return grid
 
 
 class Knight(ChessItem):
@@ -164,7 +178,6 @@ class Bishop(ChessItem):
 
     def get_actions(self, grid):
         actions = []
-
         return actions
 
 
