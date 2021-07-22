@@ -40,11 +40,18 @@ class ChessItem:
     def get_actions(self, grid):
         pass
 
-    def loop_action(self,actions, start, end,index,index_value, grid):
+    def loop_action(self,actions, start, end,index,index_value, grid,reverse=False):
         i = start
+        if reverse:
+            i = end
         while True:
-            if i == end:
-                break
+            if reverse:
+                if i < start:
+                    break
+            else:
+                if i == end:
+                    break
+                
             position = [i, i]
             position[index] = index_value
 
@@ -56,7 +63,10 @@ class ChessItem:
                         break
                 else:
                     break
-            i+=1
+            if reverse:
+                i-=1
+            else:
+                i+=1
 
     def valid_action(self, action, grid):
         if self.out_position(action.position):
@@ -158,10 +168,11 @@ class Rook(ChessItem):
         self.loop_action(
             actions, self.position[1], 8, 0, self.position[0], grid)
 
+        
         self.loop_action(
-            actions,  0, self.position[0]+1, 1, self.position[1], grid)
+            actions,  0, self.position[0], 1, self.position[1], grid,True)
         self.loop_action(
-            actions, 0, self.position[1]+1, 0, self.position[0], grid)
+            actions, 0, self.position[1], 0, self.position[0], grid,True)
         
 
         return actions
