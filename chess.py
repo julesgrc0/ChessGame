@@ -140,7 +140,21 @@ class Knight(ChessItem):
 
     def get_actions(self, grid):
         actions = []
+        list_try = [
+            [self.position[0]+1, self.position[1]+2],
+            [self.position[0]-1, self.position[1]+2],
+            [self.position[0]+1, self.position[1]-2],
+            [self.position[0]-1, self.position[1]-2],
 
+            [self.position[0]+2, self.position[1]+1],
+            [self.position[0]+2, self.position[1]-1],
+            [self.position[0]-2, self.position[1]+1],
+            [self.position[0]-2, self.position[1]-1]
+                    ]
+        for i in list_try:
+            res = self.valid_action(ChessAction(i), grid)
+            if res == ChessValidAction.VALIDE_ATTACK or res == ChessValidAction.VALID:
+                actions.append(ChessAction(i))
         return actions
 
 
@@ -164,11 +178,9 @@ class Rook(ChessItem):
         self.loop_action(
             actions, self.position[0], 8, 1, self.position[1], grid)
         
-
         self.loop_action(
             actions, self.position[1], 8, 0, self.position[0], grid)
 
-        
         self.loop_action(
             actions,  0, self.position[0], 1, self.position[1], grid,True)
         self.loop_action(
@@ -186,6 +198,22 @@ class Empty(ChessItem):
 class Queen(ChessItem):
     def __init__(self, white, position):
         ChessItem.__init__(self, ChessItemType.Queen, white, position)
+
+    def get_actions(self, grid):
+        actions = []
+        self.loop_action(
+            actions, self.position[0], 8, 1, self.position[1], grid)
+        
+        self.loop_action(
+            actions, self.position[1], 8, 0, self.position[0], grid)
+
+        self.loop_action(
+            actions,  0, self.position[0], 1, self.position[1], grid,True)
+        self.loop_action(
+            actions, 0, self.position[1], 0, self.position[0], grid,True)
+        
+
+        return actions
 
 
 class King(ChessItem):
