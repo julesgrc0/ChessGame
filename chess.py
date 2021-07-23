@@ -1,3 +1,4 @@
+from math import *
 
 class ChessItemType:
     EMPTY = 0,
@@ -40,8 +41,21 @@ class ChessItem:
 
     def get_actions(self, grid):
         pass
+    def loop_diag(self, actions, grid, x_add, y_add):
+        for i in range(0, 8):
+            position = [
+                self.position[0]+(i if x_add else -i), self.position[1]+(i if y_add else -i)]
+            if self.position != position:
+                act = ChessAction(position)
+                res = self.valid_action(act, grid)
+                if res == ChessValidAction.VALID or res == ChessValidAction.VALIDE_ATTACK:
+                    actions.append(act)
+                    if res == ChessValidAction.VALIDE_ATTACK:
+                        break
+                else:
+                    break
 
-    def loop_action(self,actions, start, end,index,index_value, grid,reverse=False):
+    def loop_line(self,actions, start, end,index,index_value, grid,reverse=False):
         i = start
         if reverse:
             i = end
@@ -176,19 +190,14 @@ class Knight(ChessItem):
 class Bishop(ChessItem):
     def __init__(self, white, position):
         ChessItem.__init__(self, ChessItemType.Bishop, white, position)
+            
 
     def get_actions(self, grid):
         actions = []
-        
-        
-            # act = ChessAction([self.position[0]+i, self.position[1]+i])
-            # res = self.valid_action(act, grid)
-            # if res == ChessValidAction.VALID or res == ChessValidAction.VALIDE_ATTACK:
-            #     actions.append(act)
-            #     if res == ChessValidAction.VALIDE_ATTACK:
-            #         break
-            # else:
-            #     break
+        self.loop_diag(actions,grid,True,False)
+        self.loop_diag(actions,grid,True,True)
+        self.loop_diag(actions,grid,False,False)
+        self.loop_diag(actions, grid, False,True)
         return actions
 
 
@@ -199,15 +208,15 @@ class Rook(ChessItem):
 
     def get_actions(self, grid):
         actions = []
-        self.loop_action(
+        self.loop_line(
             actions, self.position[0], 8, 1, self.position[1], grid)
         
-        self.loop_action(
+        self.loop_line(
             actions, self.position[1], 8, 0, self.position[0], grid)
 
-        self.loop_action(
+        self.loop_line(
             actions,  0, self.position[0], 1, self.position[1], grid,True)
-        self.loop_action(
+        self.loop_line(
             actions, 0, self.position[1], 0, self.position[0], grid,True)
         
 
@@ -225,18 +234,21 @@ class Queen(ChessItem):
 
     def get_actions(self, grid):
         actions = []
-        self.loop_action(
+        self.loop_line(
             actions, self.position[0], 8, 1, self.position[1], grid)
         
-        self.loop_action(
+        self.loop_line(
             actions, self.position[1], 8, 0, self.position[0], grid)
 
-        self.loop_action(
+        self.loop_line(
             actions,  0, self.position[0], 1, self.position[1], grid,True)
-        self.loop_action(
+        self.loop_line(
             actions, 0, self.position[1], 0, self.position[0], grid,True)
         
-
+        self.loop_diag(actions, grid, True, False)
+        self.loop_diag(actions, grid, True, True)
+        self.loop_diag(actions, grid, False, False)
+        self.loop_diag(actions, grid, False, True)
         return actions
 
 
