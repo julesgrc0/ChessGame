@@ -35,9 +35,17 @@ class Chess(Game):
     currentAction = False
     actions = []
     whiteAction = True
+
+    showAsInt = False
     showGridEffect = False
     showDeltatime = False
     showFps = False
+    startWhiteTop = True
+
+
+    enableTimer = -1
+    currentTimerTime = 0
+
     tile_count = 8
     grid=[]
     images = []
@@ -82,9 +90,21 @@ class Chess(Game):
 
         if len(args) > 3 and int(args[3])==1:
             self.showFps = True
-        
+                      
         if len(args) >4 and int(args[4]) >= 200 and int(args[4]) <= 1080:
             self.winsize = int(args[4])
+
+        if len(args) > 5 and int(args[5]) == 1:
+            self.showAsInt=True
+
+        if len(args) > 6 and int(args[6]) >= 30 and int(args[6]) <= 1000:
+            self.fps_max(int(args[6]))
+
+        if len(args) > 7 and int(args[7]) == 1:
+            self.startWhiteTop = False
+
+        if len(args) > 8 and int(args[8]) >= 30 and int(args[8]) <= 60*10:
+            self.enableTimer = int(args[8])
     
     def load_images(self,dir):
         path = os.path.dirname(os.path.abspath(__file__))+"/assets/"+dir+"/"
@@ -190,27 +210,27 @@ class Chess(Game):
                         self.draw_rect(x*self.tile_size, y*self.tile_size,self.tile_size)
 
     def chess_grid(self):
-        self.grid[0][0] = Rook(True,[0,0])
-        self.grid[1][0] = Knight(True,[1,0])
-        self.grid[2][0] = Bishop(True,[2,0])
-        self.grid[3][0] = King(True,[3,0])
-        self.grid[4][0] = Queen(True,[4,0])
-        self.grid[5][0] = Bishop(True,[5,0])
-        self.grid[6][0] = Knight(True,[6,0])
-        self.grid[7][0] = Rook(True,[7,0])
+        self.grid[0][0] = Rook(self.startWhiteTop,[0,0])
+        self.grid[1][0] = Knight(self.startWhiteTop,[1,0])
+        self.grid[2][0] = Bishop(self.startWhiteTop,[2,0])
+        self.grid[3][0] = King(self.startWhiteTop,[3,0])
+        self.grid[4][0] = Queen(self.startWhiteTop,[4,0])
+        self.grid[5][0] = Bishop(self.startWhiteTop,[5,0])
+        self.grid[6][0] = Knight(self.startWhiteTop,[6,0])
+        self.grid[7][0] = Rook(self.startWhiteTop,[7,0])
 
-        self.grid[0][7] = Rook(False,[0,7])
-        self.grid[1][7] = Knight(False,[1,7])
-        self.grid[2][7] = Bishop(False,[2,7])
-        self.grid[3][7] = King(False, [3, 7])
-        self.grid[4][7] = Queen(False, [4, 7])
-        self.grid[5][7] = Bishop(False,[5,7])
-        self.grid[6][7] = Knight(False,[6,7])
-        self.grid[7][7] = Rook(False,[7,7])
+        self.grid[0][7] = Rook(not self.startWhiteTop, [0, 7])
+        self.grid[1][7] = Knight(not self.startWhiteTop,[1,7])
+        self.grid[2][7] = Bishop(not self.startWhiteTop,[2,7])
+        self.grid[3][7] = King(not self.startWhiteTop, [3, 7])
+        self.grid[4][7] = Queen(not self.startWhiteTop, [4, 7])
+        self.grid[5][7] = Bishop(not self.startWhiteTop,[5,7])
+        self.grid[6][7] = Knight(not self.startWhiteTop,[6,7])
+        self.grid[7][7] = Rook(not self.startWhiteTop, [7, 7])
 
         for i in range(0,self.tile_count):
-            self.grid[i][1] = Pwan(True,[i,1])
-            self.grid[i][6] = Pwan(False,[i,6])
+            self.grid[i][1] = Pwan(self.startWhiteTop,[i,1])
+            self.grid[i][6] = Pwan(not self.startWhiteTop, [i, 6])
 
     def mouse_coord(self):
         return [int(mouse.get_pos()[0]/self.tile_size)*self.tile_size,int(mouse.get_pos()[1]/self.tile_size)*self.tile_size]
@@ -291,15 +311,32 @@ class Chess(Game):
                         self.currentAction = False
                         self.actions = []
                         self.currentItem = Empty()
+        
+        winTitle = "Chess game"
+        
+        if self.enableTimer != -1:
+            winTitle += " Timer: {0}/{1}".format(
+                int(self.currentTimerTime/1000) if self.showAsInt else self.currentTimerTime/1000, self.enableTimer)
+
+            self.currentTimerTime += deltatime*10000
+            if self.currentTimerTime >= self.enableTimer*1000:
+                self.whiteAction = not self.whiteAction
+                self.update_grid()
+                self.currentAction = False
+                self.actions = []
+                self.currentItem = Empty()
+                self.currentTimerTime = 0
 
         if self.showDeltatime:
-            display.set_caption("Chess game - {0}".format(deltatime))
+            winTitle += " Deltatime: {0}".format(
+                int(deltatime*10000) if self.showAsInt else deltatime)
         if self.showFps:
-            display.set_caption("Chess game - {0}".format(1.0/deltatime if deltatime else 1))
+            fps = (1.0/deltatime if deltatime else 1)
+            winTitle += " FPS: {0}".format(int(fps) if self.showAsInt else fps)
+        display.set_caption(winTitle)
 
 
 def main(argv):
-    
     game = Chess(argv)
     game.start()
 

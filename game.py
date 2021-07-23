@@ -10,17 +10,19 @@ class Game:
     last_time: float = 0
     renderer: Surface
     running: bool = True
+    blockFPS = False
+    fpsmax = 0
 
     def __init__(self, size):
         pygame.init()
         self.renderer = display.set_mode(size)
-        self.blockFPS = False
-        self.fpsmax = 0
 
     def fps_max(self,value):
+       
         if value <= 0:
             self.blockFPS = False
         else:
+            print(value)
             self.blockFPS = True
             self.fpsmax = value
 
@@ -38,7 +40,7 @@ class Game:
 
             display.flip()
             if self.blockFPS:
-                time.sleep(self.fpsmax/1000)
+                pygame.time.Clock().tick(self.fpsmax)
 
     def draw(self):
         pass
