@@ -4,6 +4,7 @@ import sys
 import time
 import time
 import random
+import datetime
 
 from os import listdir
 from os.path import isfile, join
@@ -50,11 +51,15 @@ class Chess(Game):
     grid=[]
     images = []
     winsize = 700
+    winTitle = "Chess game"
 
     def __init__(self, args):
         self.process_args(args)
         size = int(self.winsize/8)*8
         Game.__init__(self, [size,size])
+        icon = image.load(os.path.dirname(os.path.abspath(
+            __file__))+os.sep+"assets"+os.sep+"icon.png").convert_alpha()
+        display.set_icon(icon)
         self.tile_size = int(self.renderer.get_width()/self.tile_count)
 
         self.fill_grid()
@@ -84,7 +89,7 @@ class Chess(Game):
         
         if len(args) > 1 and int(args[1])==1:
             self.showGridEffect = True
-
+            
         if len(args) > 2 and int(args[2])==1:
             self.showDeltatime = True
 
@@ -105,9 +110,12 @@ class Chess(Game):
 
         if len(args) > 8 and int(args[8]) >= 30 and int(args[8]) <= 60*10:
             self.enableTimer = int(args[8])
+
+        if len(args) > 9 and int(args[9]) ==1:
+            self.winTitle = ""
     
     def load_images(self,dir):
-        path = os.path.dirname(os.path.abspath(__file__))+"/assets/"+dir+"/"
+        path = os.path.dirname(os.path.abspath(__file__))+os.sep+"assets"+os.sep+dir+os.sep
         files = [f for f in listdir(path) if isfile(join(path, f))]
         files.sort()
         print("Load assets in {0}".format(path))
@@ -262,13 +270,50 @@ class Chess(Game):
         self.draw_chess()
         if self.currentAction:
             self.draw_actions()
-
-        
+                
+    def write_info(self):
+        f = open("info.log", "w+")
+        lines = ["Date "+str(datetime.datetime.now()), "",
+                 os.path.dirname(os.path.abspath(__file__))+os.sep+"assets"+os.sep, ""]
+        lines += [
+            "Empty  0",
+            "King  1",
+            "Queen  2",
+            "Rook  3",
+            "Bishop  4",
+            "Knight  5",
+            "Pawn  6",
+        ]
+        lines.append("")
+        for x in range(0, self.tile_count):
+            l = ""
+            for y in range(0, self.tile_count):
+                l += str(self.grid[y][x].type[0]) + " "
+            lines.append(l)
+        lines.append("")
+        lines += [
+                "whiteAction "+str(self.whiteAction),
+                "showAsInt "+str(self.showAsInt),
+                "showGridEffect "+str(self.showGridEffect),
+                "showDeltatime "+str(self.showDeltatime),
+                "showFps "+str(self.showFps ),
+                "startWhiteTop "+str(self.startWhiteTop ),
+                "enableTimer "+str(self.enableTimer)+" s",
+                "currentTimerTime "+str(self.currentTimerTime)+" ms"
+                ]
+        for line in lines:
+            f.write(line+"\n")
+        f.close()
 
     def update(self, deltatime):
         for evt in event.get():
             if evt.type == pygame.QUIT:
                     self.running = False
+            if evt.type == pygame.KEYDOWN:
+                if evt.key == pygame.K_ESCAPE:
+                    self.running = False
+                if evt.key == pygame.K_i:
+                    self.write_info()
             if evt.type == pygame.MOUSEBUTTONDOWN:
                 if not self.currentAction:
                     self.currentItem = self.mouse_get_grid()
@@ -297,10 +342,13 @@ class Chess(Game):
                             # action invalid
                             self.grid = deepcopy(last_grid)
                         else:
-                            # valid action
-                            if g != None:
-                                self.grid = g
-                            self.whiteAction = not self.whiteAction
+                            if not self.isChess(self.whiteAction,g): 
+                                # valid action
+                                if g != None:
+                                    self.grid = g
+                                self.whiteAction = not self.whiteAction
+                            else:
+                                self.grid = deepcopy(last_grid)
 
                         self.update_grid()
                         self.currentAction = False
@@ -311,14 +359,12 @@ class Chess(Game):
                         self.currentAction = False
                         self.actions = []
                         self.currentItem = Empty()
-        
-        winTitle = "Chess game"
-        
+        tmpTitle = self.winTitle
         if self.enableTimer != -1:
-            winTitle += " Timer: {0}/{1}".format(
+            tmpTitle += " Timer: {0}/{1}".format(
                 int(self.currentTimerTime/1000) if self.showAsInt else self.currentTimerTime/1000, self.enableTimer)
 
-            self.currentTimerTime += deltatime*10000
+            self.currentTimerTime += deltatime*1000
             if self.currentTimerTime >= self.enableTimer*1000:
                 self.whiteAction = not self.whiteAction
                 self.update_grid()
@@ -328,12 +374,12 @@ class Chess(Game):
                 self.currentTimerTime = 0
 
         if self.showDeltatime:
-            winTitle += " Deltatime: {0}".format(
+            tmpTitle += " Deltatime: {0}".format(
                 int(deltatime*10000) if self.showAsInt else deltatime)
         if self.showFps:
             fps = (1.0/deltatime if deltatime else 1)
-            winTitle += " FPS: {0}".format(int(fps) if self.showAsInt else fps)
-        display.set_caption(winTitle)
+            tmpTitle += " FPS: {0}".format(int(fps) if self.showAsInt else fps)
+        display.set_caption(tmpTitle)
 
 
 def main(argv):

@@ -22,7 +22,6 @@ class Game:
         if value <= 0:
             self.blockFPS = False
         else:
-            print(value)
             self.blockFPS = True
             self.fpsmax = value
 

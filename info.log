@@ -1,0 +1,29 @@
+Date 2021-07-23 14:27:48.529067
+
+C:\APPS\run\ChessGame\assets\
+
+Empty  0
+King  1
+Queen  2
+Rook  3
+Bishop  4
+Knight  5
+Pawn  6
+
+3 5 4 1 2 4 5 3 
+6 6 6 6 6 6 6 6 
+0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 
+6 6 6 6 6 6 6 6 
+3 5 4 1 2 4 5 3 
+
+whiteAction False
+showAsInt True
+showGridEffect True
+showDeltatime True
+showFps True
+startWhiteTop True
+enableTimer 60 s
+currentTimerTime 12250.237464904785 ms
