@@ -53,7 +53,8 @@ class Chess(Game):
         self.fill_grid()
         self.init_grid()
         self.chess_grid()
-        self.load_images()
+        self.load_images("white")
+        self.load_images("black")
         
         display.set_caption("Chess game")
 
@@ -85,10 +86,9 @@ class Chess(Game):
         
         if len(args) >4 and int(args[4]) >= 200 and int(args[4]) <= 1080:
             self.winsize = int(args[4])
-    def load_svg(fileath,size):
-        pass
-    def load_images(self):
-        path = os.path.dirname(os.path.abspath(__file__))+"/assets/"
+    
+    def load_images(self,dir):
+        path = os.path.dirname(os.path.abspath(__file__))+"/assets/"+dir+"/"
         files = [f for f in listdir(path) if isfile(join(path, f))]
         files.sort()
         print("Load assets in {0}".format(path))
@@ -98,7 +98,11 @@ class Chess(Game):
                 self.images.append(image.load(path+file))
         
     def draw_image(self,index,x,y):
-         self.renderer.blit(transform.scale(self.images[index],(self.tile_size,self.tile_size)),pygame.Rect(x*self.tile_size,y*self.tile_size,self.tile_size,self.tile_size))
+        # self.renderer.blit(transform.scale(self.images[index],(self.tile_size,self.tile_size)),pygame.Rect(x*self.tile_size,y*self.tile_size,self.tile_size,self.tile_size))
+        center_value = (self.tile_size-self.images[index].get_width())/2
+        center = pygame.Rect(
+            x*self.tile_size+center_value, y*self.tile_size+center_value, self.tile_size, self.tile_size)
+        self.renderer.blit(self.images[index], center)
     def draw_rect(self, x, y, tile_size):
         draw.line(self.renderer, (255, 255, 255), (x, y), (x+tile_size, y))
         draw.line(self.renderer, (255, 255, 255), (x, y), (x, y+tile_size))
@@ -115,11 +119,20 @@ class Chess(Game):
 
     def draw_grid(self):
         self.renderer.fill((184, 139, 74))
-        for x in range(0,self.tile_count):
+        i = 0
+        switch = False
+        for x in range(0, self.tile_count):
             for y in range(0, self.tile_count):
-                
-                if not self.grid[x][y].white:
-                    draw.rect(self.renderer, (227, 193, 111),pygame.Rect(x*self.tile_size, y*self.tile_size, self.tile_size, self.tile_size))
+                if i >= self.tile_count:
+                    i = 0
+                else:
+                    switch = not switch
+                i += 1
+                if switch:
+                    draw.rect(self.renderer, (227, 193, 111), pygame.Rect(
+                        x*self.tile_size, y*self.tile_size, self.tile_size, self.tile_size))
+
+                    
     
     def init_grid(self):
         i=0
@@ -151,24 +164,28 @@ class Chess(Game):
         for x in range(0,self.tile_count):
             for y in range(0,self.tile_count):
                 if self.grid[x][y].type != ChessItemType.EMPTY:
-                    color=(255,255,255)
-                    if not self.grid[x][y].white:
-                        color = (0,0,0)
+                    # color=(255,255,255)
+                    # if not self.grid[x][y].white:
+                    #     color = (0,0,0)
+                    # draw.rect(self.renderer,color,pygame.Rect(x*self.tile_size,y*self.tile_size,self.tile_size,self.tile_size))
                     
-                    draw.rect(self.renderer,color,pygame.Rect(x*self.tile_size,y*self.tile_size,self.tile_size,self.tile_size))
                     item_type = self.grid[x][y].type
+                    image_id = 0
                     if item_type == ChessItemType.King:
-                       self.draw_image(3,x,y)
+                       image_id = 1
                     elif item_type == ChessItemType.Rook:
-                        self.draw_image(4,x,y)
+                        image_id = 5
                     elif item_type == ChessItemType.Knight:
-                        self.draw_image(5,x,y)
+                        image_id = 2
                     elif item_type == ChessItemType.Bishop:
-                        self.draw_image(2,x,y)
+                        image_id = 0
                     elif item_type == ChessItemType.Pawn:
-                        self.draw_image(1,x,y)
+                        image_id = 3
                     elif item_type == ChessItemType.Queen:
-                        self.draw_image(0,x,y)
+                        image_id = 4
+                    if not self.grid[x][y].white:
+                        image_id += 6
+                    self.draw_image(image_id,x,y)
                         
                 if self.showGridEffect:
                         self.draw_rect(x*self.tile_size, y*self.tile_size,self.tile_size)
