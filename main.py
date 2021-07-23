@@ -40,7 +40,6 @@ class Chess(Game):
     showFps = False
     tile_count = 8
     grid=[]
-    las_grid = []
     images = []
     winsize = 700
 
@@ -58,18 +57,18 @@ class Chess(Game):
         
         display.set_caption("Chess game")
 
-    def isChess(self,white=True):
+    def isChess(self, white=True, grid=[]):
         actions = []
-        king_position = []
+        king_position = [0,0]
         for i in range(0,self.tile_count):
             for k in range(0,self.tile_count):
-                if self.grid[i][k].type != ChessItemType.EMPTY and self.grid[i][k].white != white:
-                   actions = actions + self.grid[i][k].get_actions(self.grid)
-                elif  self.grid[i][k].type != ChessItemType.King and self.grid[i][k].white == white:
+                if grid[i][k].type != ChessItemType.EMPTY and grid[i][k].white != white:
+                   actions = actions + grid[i][k].get_actions(grid)
+                elif  grid[i][k].type == ChessItemType.King and grid[i][k].white == white:
                     king_position = [i,k]
-       
-        for i in actions:
-            if actions[i].position == king_position:
+        
+        for act in actions:
+            if act.position == king_position:
                 return True
         return False
 
@@ -195,7 +194,7 @@ class Chess(Game):
         self.grid[1][0] = Knight(True,[1,0])
         self.grid[2][0] = Bishop(True,[2,0])
         self.grid[3][0] = King(True,[3,0])
-        self.grid[4][0] = King(True,[4,0])
+        self.grid[4][0] = Queen(True,[4,0])
         self.grid[5][0] = Bishop(True,[5,0])
         self.grid[6][0] = Knight(True,[6,0])
         self.grid[7][0] = Rook(True,[7,0])
@@ -203,8 +202,8 @@ class Chess(Game):
         self.grid[0][7] = Rook(False,[0,7])
         self.grid[1][7] = Knight(False,[1,7])
         self.grid[2][7] = Bishop(False,[2,7])
-        self.grid[3][7] = King(False,[3,7])
-        self.grid[4][7] = King(False,[4,7])
+        self.grid[3][7] = King(False, [3, 7])
+        self.grid[4][7] = Queen(False, [4, 7])
         self.grid[5][7] = Bishop(False,[5,7])
         self.grid[6][7] = Knight(False,[6,7])
         self.grid[7][7] = Rook(False,[7,7])
@@ -261,6 +260,7 @@ class Chess(Game):
                             self.actions = []
                             self.currentItem = Empty()
                 else:
+                    wasChess = self.isChess(self.whiteAction,self.grid)
                     i=0
                     index=-1
                     for act in self.actions:
@@ -271,16 +271,21 @@ class Chess(Game):
                         i+=1
 
                     if index != -1 and self.currentItem.type != ChessItemType.EMPTY:
+                        last_grid = deepcopy(self.grid)
                         g=self.currentItem.do_action(self.actions[index],self.grid)
-                        if g != None:
-                            self.last_grid = deepcopy(self.grid)
-                            self.grid = g
+                        if wasChess and self.isChess(self.whiteAction,g):
+                            # action invalid
+                            self.grid = deepcopy(last_grid)
+                        else:
+                            # valid action
+                            if g != None:
+                                self.grid = g
+                            self.whiteAction = not self.whiteAction
+
                         self.update_grid()
                         self.currentAction = False
                         self.actions = []
                         self.currentItem = Empty()
-                        # next turn
-                        self.whiteAction = not self.whiteAction
                     else:
                         #click out
                         self.currentAction = False

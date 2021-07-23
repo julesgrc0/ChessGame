@@ -1,3 +1,4 @@
+
 class ChessItemType:
     EMPTY = 0,
     King = 1,
@@ -178,6 +179,16 @@ class Bishop(ChessItem):
 
     def get_actions(self, grid):
         actions = []
+        
+        
+            # act = ChessAction([self.position[0]+i, self.position[1]+i])
+            # res = self.valid_action(act, grid)
+            # if res == ChessValidAction.VALID or res == ChessValidAction.VALIDE_ATTACK:
+            #     actions.append(act)
+            #     if res == ChessValidAction.VALIDE_ATTACK:
+            #         break
+            # else:
+            #     break
         return actions
 
 
