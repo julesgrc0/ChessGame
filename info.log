@@ -1,4 +1,4 @@
-Date 2021-07-24 20:26:38.439073
+Date 2021-07-24 21:16:56.649256
 
 C:\APPS\run\ChessGame\assets\
 
@@ -11,22 +11,22 @@ Knight  5
 Pawn  6
 
 3 5 4 1 2 4 5 3 
-6 6 6 6 6 6 6 6 
+6 6 0 6 6 6 6 6 
 0 0 0 0 0 0 0 0 
-0 0 0 0 0 0 0 0 
+0 0 6 0 0 0 0 0 
 0 0 0 0 0 0 0 0 
 0 0 0 0 0 0 0 0 
 6 6 6 6 6 6 6 6 
 3 5 4 1 2 4 5 3 
 
 whiteAction True
-showAsInt False
-showGridEffect False
+showAsInt True
+showGridEffect True
 showDeltatime False
-showFps False
+showFps True
 showMoveTrue
-startWhiteTop True
-enableTimer -1 s
-currentTimerTime 0 ms
-currentMove [-1, -1]
-lastcurrentMove [-1, -1]
+startWhiteTop False
+enableTimer 500 s
+currentTimerTime 1499.0320205688477 ms
+currentMove [2, 3]
+lastcurrentMove [2, 1]

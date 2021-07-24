@@ -1,5 +1,4 @@
 from math import *
-
 class ChessItemType:
     EMPTY = 0,
     King = 1,
@@ -128,13 +127,14 @@ class ChessItem:
 
 class Pwan(ChessItem):
 
-    def __init__(self, white, position):
+    def __init__(self, white,top, position):
         self.first_move = False
+        self.top = top
         ChessItem.__init__(self, ChessItemType.Pawn, white, position)
 
     def get_actions(self, grid):
         actions = []
-        add = (1 if self.white else -1)
+        add = (1 if self.white == self.top else -1)
 
         if self.valid_action(ChessAction([self.position[0], self.position[1]+add]), grid) == ChessValidAction.VALID:
             actions = self.add_action(

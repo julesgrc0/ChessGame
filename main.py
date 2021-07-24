@@ -44,6 +44,7 @@ class Chess(Game):
     startWhiteTop = True
     showMove = True
     showChess = True
+    showTurn = True
 
     chessKing = [-1,-1]
 
@@ -126,6 +127,8 @@ class Chess(Game):
 
         if len(args) > 11 and int(args[11]) ==1:
             self.showChess = False
+        if len(args) > 12 and int(args[12]) ==1:
+            self.showTurn = False
     
     def load_images(self,dir):
         path = os.path.dirname(os.path.abspath(__file__))+os.sep+"assets"+os.sep+dir+os.sep
@@ -250,8 +253,9 @@ class Chess(Game):
         self.grid[7][7] = Rook(not self.startWhiteTop, [7, 7])
 
         for i in range(0,self.tile_count):
-            self.grid[i][1] = Pwan(self.startWhiteTop,[i,1])
-            self.grid[i][6] = Pwan(not self.startWhiteTop, [i, 6])
+            self.grid[i][1] = Pwan(self.startWhiteTop,self.startWhiteTop,[i,1])
+            self.grid[i][6] = Pwan(
+                not self.startWhiteTop, self.startWhiteTop, [i, 6])
 
     def mouse_coord(self):
         return [int(mouse.get_pos()[0]/self.tile_size)*self.tile_size,int(mouse.get_pos()[1]/self.tile_size)*self.tile_size]
@@ -369,6 +373,7 @@ class Chess(Game):
                         else:
                             if not self.isChess(self.whiteAction,g): 
                                 self.chessKing = [-1,-1]
+                                self.currentTimerTime = 0
                                 # valid action
                                 if g != None:
                                     self.grid = g
@@ -386,11 +391,14 @@ class Chess(Game):
                         self.actions = []
                         self.currentItem = Empty()
                     else:
+                        
                         #click out
                         self.currentAction = False
                         self.actions = []
                         self.currentItem = Empty()
         tmpTitle = self.winTitle
+        if self.showTurn:
+            tmpTitle += " "+("White" if self.whiteAction else "Black")
         if self.enableTimer != -1:
             tmpTitle += " Timer: {0}/{1}".format(
                 int(self.currentTimerTime/1000) if self.showAsInt else self.currentTimerTime/1000, self.enableTimer)

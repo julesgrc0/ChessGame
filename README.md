@@ -39,6 +39,7 @@ python3 main.py
 * only show game stats (1 | 0)
 * hide last move (1 | 0)
 * hide king chess (1 | 0)
+* hide turn (1 | 0)
 
 ### Example
 ```cmd
