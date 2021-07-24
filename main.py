@@ -42,7 +42,13 @@ class Chess(Game):
     showDeltatime = False
     showFps = False
     startWhiteTop = True
+    showMove = True
+    showChess = True
 
+    chessKing = [-1,-1]
+
+    currentMove = [-1, -1]
+    lastcurrentMove = [-1,-1]
 
     enableTimer = -1
     currentTimerTime = 0
@@ -82,6 +88,7 @@ class Chess(Game):
         
         for act in actions:
             if act.position == king_position:
+                self.chessKing = king_position
                 return True
         return False
 
@@ -113,6 +120,12 @@ class Chess(Game):
 
         if len(args) > 9 and int(args[9]) ==1:
             self.winTitle = ""
+
+        if len(args) > 10 and int(args[10]) ==1:
+            self.showMove = False
+
+        if len(args) > 11 and int(args[11]) ==1:
+            self.showChess = False
     
     def load_images(self,dir):
         path = os.path.dirname(os.path.abspath(__file__))+os.sep+"assets"+os.sep+dir+os.sep
@@ -265,8 +278,16 @@ class Chess(Game):
         draw.rect(self.renderer, (190, 140, 90), pygame.Rect(
             coord[0], coord[1], self.tile_size, self.tile_size))
         self.draw_rect(coord[0], coord[1], self.tile_size)
-
         
+        if self.showMove:
+            draw.rect(self.renderer, (217, 162, 13), pygame.Rect(
+            self.currentMove[0]*self.tile_size, self.currentMove[1]*self.tile_size, self.tile_size, self.tile_size))
+            draw.rect(self.renderer, (161, 121, 13), pygame.Rect(
+            self.lastcurrentMove[0]*self.tile_size, self.lastcurrentMove[1]*self.tile_size, self.tile_size, self.tile_size))
+        if self.showChess:
+            draw.rect(self.renderer, (161, 18, 13), pygame.Rect(
+                self.chessKing[0]*self.tile_size, self.chessKing[1]*self.tile_size, self.tile_size, self.tile_size))
+            
         self.draw_chess()
         if self.currentAction:
             self.draw_actions()
@@ -297,9 +318,12 @@ class Chess(Game):
                 "showGridEffect "+str(self.showGridEffect),
                 "showDeltatime "+str(self.showDeltatime),
                 "showFps "+str(self.showFps ),
+                "showMove"+str(self.showMove),
                 "startWhiteTop "+str(self.startWhiteTop ),
                 "enableTimer "+str(self.enableTimer)+" s",
-                "currentTimerTime "+str(self.currentTimerTime)+" ms"
+                "currentTimerTime "+str(self.currentTimerTime)+" ms",
+                "currentMove "+str(self.currentMove),
+                "lastcurrentMove "+str(self.lastcurrentMove),
                 ]
         for line in lines:
             f.write(line+"\n")
@@ -336,6 +360,7 @@ class Chess(Game):
                         i+=1
 
                     if index != -1 and self.currentItem.type != ChessItemType.EMPTY:
+                        tmpCurrentMove = self.currentItem.position
                         last_grid = deepcopy(self.grid)
                         g=self.currentItem.do_action(self.actions[index],self.grid)
                         if wasChess and self.isChess(self.whiteAction,g):
@@ -343,10 +368,16 @@ class Chess(Game):
                             self.grid = deepcopy(last_grid)
                         else:
                             if not self.isChess(self.whiteAction,g): 
+                                self.chessKing = [-1,-1]
                                 # valid action
                                 if g != None:
                                     self.grid = g
                                 self.whiteAction = not self.whiteAction
+                                self.currentMove = self.currentItem.position
+                                self.lastcurrentMove = tmpCurrentMove
+
+                                # update chessKing position
+                                self.isChess(self.whiteAction, self.grid)
                             else:
                                 self.grid = deepcopy(last_grid)
 

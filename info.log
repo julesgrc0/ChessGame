@@ -1,4 +1,4 @@
-Date 2021-07-23 14:27:48.529067
+Date 2021-07-24 20:26:38.439073
 
 C:\APPS\run\ChessGame\assets\
 
@@ -19,11 +19,14 @@ Pawn  6
 6 6 6 6 6 6 6 6 
 3 5 4 1 2 4 5 3 
 
-whiteAction False
-showAsInt True
-showGridEffect True
-showDeltatime True
-showFps True
+whiteAction True
+showAsInt False
+showGridEffect False
+showDeltatime False
+showFps False
+showMoveTrue
 startWhiteTop True
-enableTimer 60 s
-currentTimerTime 12250.237464904785 ms
+enableTimer -1 s
+currentTimerTime 0 ms
+currentMove [-1, -1]
+lastcurrentMove [-1, -1]
