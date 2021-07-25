@@ -383,6 +383,7 @@ class Chess(Game):
 
                                 # update chessKing position
                                 self.isChess(self.whiteAction, self.grid)
+                                
                             else:
                                 self.grid = deepcopy(last_grid)
 

@@ -5,7 +5,7 @@
 Run the game
 ```cmd
 pip install pygame
-python3 main.py
+python main.py
 ```
 
 > if you don't have python3 installed
@@ -21,9 +21,9 @@ start cmd.exe && exit
 
 * Install pip and run the game
 ``` cmd
-python3 -m pip install
+python -m pip install
 pip install pygame
-python3 main.py
+python main.py
 ```
 
 > custom game parameters
