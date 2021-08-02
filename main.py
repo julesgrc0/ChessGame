@@ -8,7 +8,7 @@ import datetime
 
 from os import listdir
 from os.path import isfile, join
-from pygame import Surface, draw, display, event, key,mouse,cursors,image,transform
+from pygame import Surface, draw, display, event, key,mouse,cursors,image,transform,font
 from pygame.cursors import Cursor
 from chess import *
 from copy import copy, deepcopy
@@ -59,6 +59,7 @@ class Chess(Game):
     images = []
     winsize = 700
     winTitle = "Chess game"
+    gameStop = False
 
     def __init__(self, args):
         self.process_args(args)
@@ -69,6 +70,10 @@ class Chess(Game):
         display.set_icon(icon)
         self.tile_size = int(self.renderer.get_width()/self.tile_count)
 
+        self.fontpath = os.path.dirname(os.path.abspath(
+            __file__))+os.sep+"assets"+os.sep+"font.ttf"
+        self.font = pygame.font.SysFont(self.fontpath, 72)
+        
         self.fill_grid()
         self.init_grid()
         self.chess_grid()
@@ -76,6 +81,27 @@ class Chess(Game):
         self.load_images("black")
         
         display.set_caption("Chess game")
+
+    def MatchEnd(self, white=True, grid=[]):
+        if self.isChess(white,grid):
+            possibilities = []
+            tmp_grid = deepcopy(grid)
+            
+            for i in range(0,self.tile_count):
+                for k in range(0,self.tile_count):
+                    if tmp_grid[i][k].type != ChessItemType.EMPTY and tmp_grid[i][k].white == white:
+                        possibilities.append([tmp_grid[i][k].get_actions(tmp_grid),tmp_grid[i][k]])
+           
+            for act in possibilities:
+                for action in act[0]:
+                    act[1].do_action(action,tmp_grid)
+                    if not self.isChess(white,tmp_grid):
+                        print(action.position,act[1].type)
+                        return False
+                    tmp_grid = deepcopy(grid)
+            return True
+        return False
+
 
     def isChess(self, white=True, grid=[]):
         actions = []
@@ -277,24 +303,36 @@ class Chess(Game):
         return self.grid[int(coord[0]/self.tile_size)][int(coord[1]/self.tile_size)]
 
     def draw(self):
-        self.draw_grid()
-        coord = self.mouse_coord()
-        draw.rect(self.renderer, (190, 140, 90), pygame.Rect(
-            coord[0], coord[1], self.tile_size, self.tile_size))
-        self.draw_rect(coord[0], coord[1], self.tile_size)
-        
-        if self.showMove:
-            draw.rect(self.renderer, (217, 162, 13), pygame.Rect(
-            self.currentMove[0]*self.tile_size, self.currentMove[1]*self.tile_size, self.tile_size, self.tile_size))
-            draw.rect(self.renderer, (161, 121, 13), pygame.Rect(
-            self.lastcurrentMove[0]*self.tile_size, self.lastcurrentMove[1]*self.tile_size, self.tile_size, self.tile_size))
-        if self.showChess:
-            draw.rect(self.renderer, (161, 18, 13), pygame.Rect(
-                self.chessKing[0]*self.tile_size, self.chessKing[1]*self.tile_size, self.tile_size, self.tile_size))
+        if self.gameStop:
+            self.draw_grid()
+            if self.showChess:
+                draw.rect(self.renderer, (161, 18, 13), pygame.Rect(
+                    self.chessKing[0]*self.tile_size, self.chessKing[1]*self.tile_size, self.tile_size, self.tile_size))
+            self.draw_chess()
+
             
-        self.draw_chess()
-        if self.currentAction:
-            self.draw_actions()
+            txt = self.font.render("White Win" if not self.whiteAction else "Black Win", True, (255,255,255) if not self.whiteAction else (0,0,0))
+            w, h = self.renderer.get_size()
+            self.renderer.blit(txt,txt.get_rect(center=(w/2, h/2)))
+        else:    
+            self.draw_grid()
+            coord = self.mouse_coord()
+            draw.rect(self.renderer, (190, 140, 90), pygame.Rect(
+                coord[0], coord[1], self.tile_size, self.tile_size))
+            self.draw_rect(coord[0], coord[1], self.tile_size)
+            
+            if self.showMove:
+                draw.rect(self.renderer, (217, 162, 13), pygame.Rect(
+                self.currentMove[0]*self.tile_size, self.currentMove[1]*self.tile_size, self.tile_size, self.tile_size))
+                draw.rect(self.renderer, (161, 121, 13), pygame.Rect(
+                self.lastcurrentMove[0]*self.tile_size, self.lastcurrentMove[1]*self.tile_size, self.tile_size, self.tile_size))
+            if self.showChess:
+                draw.rect(self.renderer, (161, 18, 13), pygame.Rect(
+                    self.chessKing[0]*self.tile_size, self.chessKing[1]*self.tile_size, self.tile_size, self.tile_size))
+                
+            self.draw_chess()
+            if self.currentAction:
+                self.draw_actions()
                 
     def write_info(self):
         f = open("info.log", "w+")
@@ -354,6 +392,8 @@ class Chess(Game):
                             self.currentItem = Empty()
                 else:
                     wasChess = self.isChess(self.whiteAction,self.grid)
+                    
+
                     i=0
                     index=-1
                     for act in self.actions:
@@ -383,7 +423,8 @@ class Chess(Game):
 
                                 # update chessKing position
                                 self.isChess(self.whiteAction, self.grid)
-                                
+                                if self.MatchEnd(self.whiteAction,self.grid):
+                                    self.gameStop = True
                             else:
                                 self.grid = deepcopy(last_grid)
 
@@ -397,29 +438,32 @@ class Chess(Game):
                         self.currentAction = False
                         self.actions = []
                         self.currentItem = Empty()
-        tmpTitle = self.winTitle
-        if self.showTurn:
-            tmpTitle += " "+("White" if self.whiteAction else "Black")
-        if self.enableTimer != -1:
-            tmpTitle += " Timer: {0}/{1}".format(
-                int(self.currentTimerTime/1000) if self.showAsInt else self.currentTimerTime/1000, self.enableTimer)
+        if not self.gameStop:
+            tmpTitle = self.winTitle
+            if self.showTurn:
+                tmpTitle += " "+("White" if self.whiteAction else "Black")
+            if self.enableTimer != -1:
+                tmpTitle += " Timer: {0}/{1}".format(
+                    int(self.currentTimerTime/1000) if self.showAsInt else self.currentTimerTime/1000, self.enableTimer)
 
-            self.currentTimerTime += deltatime*1000
-            if self.currentTimerTime >= self.enableTimer*1000:
-                self.whiteAction = not self.whiteAction
-                self.update_grid()
-                self.currentAction = False
-                self.actions = []
-                self.currentItem = Empty()
-                self.currentTimerTime = 0
+                self.currentTimerTime += deltatime*1000
+                if self.currentTimerTime >= self.enableTimer*1000:
+                    self.whiteAction = not self.whiteAction
+                    self.update_grid()
+                    self.currentAction = False
+                    self.actions = []
+                    self.currentItem = Empty()
+                    self.currentTimerTime = 0
 
-        if self.showDeltatime:
-            tmpTitle += " Deltatime: {0}".format(
-                int(deltatime*10000) if self.showAsInt else deltatime)
-        if self.showFps:
-            fps = (1.0/deltatime if deltatime else 1)
-            tmpTitle += " FPS: {0}".format(int(fps) if self.showAsInt else fps)
-        display.set_caption(tmpTitle)
+            if self.showDeltatime:
+                tmpTitle += " Deltatime: {0}".format(
+                    int(deltatime*10000) if self.showAsInt else deltatime)
+            if self.showFps:
+                fps = (1.0/deltatime if deltatime else 1)
+                tmpTitle += " FPS: {0}".format(int(fps) if self.showAsInt else fps)
+            display.set_caption(tmpTitle)
+        else:
+             display.set_caption("Chess game - {0}".format("White Win" if not self.whiteAction else "Black Win"))
 
 
 def main(argv):
