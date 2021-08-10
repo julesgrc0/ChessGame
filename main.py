@@ -61,6 +61,9 @@ class Chess(Game):
     winTitle = "Chess game"
     gameStop = False
 
+    currentChoose = False
+    choosePosition = [-1,-1]
+
     def __init__(self, args):
         self.process_args(args)
         size = int(self.winsize/8)*8
@@ -74,8 +77,8 @@ class Chess(Game):
             __file__))+os.sep+"assets"+os.sep+"font.ttf"
         self.font = pygame.font.SysFont(self.fontpath, 72)
         
-        self.fill_grid()
-        self.init_grid()
+        self.fill_grid(self.grid)
+        self.init_grid(self.grid)
         self.chess_grid()
         self.load_images("white")
         self.load_images("black")
@@ -96,12 +99,10 @@ class Chess(Game):
                 for action in act[0]:
                     act[1].do_action(action,tmp_grid)
                     if not self.isChess(white,tmp_grid):
-                        print(action.position,act[1].type)
                         return False
                     tmp_grid = deepcopy(grid)
             return True
         return False
-
 
     def isChess(self, white=True, grid=[]):
         actions = []
@@ -180,14 +181,19 @@ class Chess(Game):
         draw.line(self.renderer, (255, 255, 255),
                   (x+tile_size, y), (x+tile_size, y+tile_size))
 
-    def fill_grid(self):
+    def fill_grid(self,grid):
         for i in range(0,self.tile_count):
-            self.grid.append([])
+            grid.append([])
             for k in range(0,self.tile_count):  
-                  self.grid[i].append(Empty())
+                  grid[i].append(Empty())
 
     def draw_grid(self):
-        self.renderer.fill((184, 139, 74))
+        back = (184, 139, 74)
+        case =  (227, 193, 111)
+        if not self.startWhiteTop:
+            back = case
+            case = (184, 139, 74)
+        self.renderer.fill(back)
         i = 0
         switch = False
         for x in range(0, self.tile_count):
@@ -198,12 +204,12 @@ class Chess(Game):
                     switch = not switch
                 i += 1
                 if switch:
-                    draw.rect(self.renderer, (227, 193, 111), pygame.Rect(
+                    draw.rect(self.renderer, case, pygame.Rect(
                         x*self.tile_size, y*self.tile_size, self.tile_size, self.tile_size))
 
                     
     
-    def init_grid(self):
+    def init_grid(self,grid):
         i=0
         switch = False
         for x in range(0, self.tile_count):
@@ -214,7 +220,7 @@ class Chess(Game):
                     switch = not switch
                 i += 1
 
-                self.grid[x][y] = Empty(switch)
+                grid[x][y] = Empty(switch)
 
     def update_grid(self):
         i=0
@@ -229,16 +235,16 @@ class Chess(Game):
                 if self.grid[x][y].type == ChessItemType.EMPTY:
                     self.grid[x][y] = Empty(switch)
 
-    def draw_chess(self):
+    def draw_chess(self,grid):
         for x in range(0,self.tile_count):
             for y in range(0,self.tile_count):
-                if self.grid[x][y].type != ChessItemType.EMPTY:
+                if grid[x][y].type != ChessItemType.EMPTY:
                     # color=(255,255,255)
                     # if not self.grid[x][y].white:
                     #     color = (0,0,0)
                     # draw.rect(self.renderer,color,pygame.Rect(x*self.tile_size,y*self.tile_size,self.tile_size,self.tile_size))
                     
-                    item_type = self.grid[x][y].type
+                    item_type = grid[x][y].type
                     image_id = 0
                     if item_type == ChessItemType.King:
                        image_id = 1
@@ -252,7 +258,7 @@ class Chess(Game):
                         image_id = 3
                     elif item_type == ChessItemType.Queen:
                         image_id = 4
-                    if not self.grid[x][y].white:
+                    if not grid[x][y].white:
                         image_id += 6
                     self.draw_image(image_id,x,y)
                         
@@ -308,7 +314,7 @@ class Chess(Game):
             if self.showChess:
                 draw.rect(self.renderer, (161, 18, 13), pygame.Rect(
                     self.chessKing[0]*self.tile_size, self.chessKing[1]*self.tile_size, self.tile_size, self.tile_size))
-            self.draw_chess()
+            self.draw_chess(self.grid)
 
             
             txt = self.font.render("White Win" if not self.whiteAction else "Black Win", True, (255,255,255) if not self.whiteAction else (0,0,0))
@@ -316,23 +322,35 @@ class Chess(Game):
             self.renderer.blit(txt,txt.get_rect(center=(w/2, h/2)))
         else:    
             self.draw_grid()
-            coord = self.mouse_coord()
-            draw.rect(self.renderer, (190, 140, 90), pygame.Rect(
-                coord[0], coord[1], self.tile_size, self.tile_size))
-            self.draw_rect(coord[0], coord[1], self.tile_size)
-            
-            if self.showMove:
-                draw.rect(self.renderer, (217, 162, 13), pygame.Rect(
-                self.currentMove[0]*self.tile_size, self.currentMove[1]*self.tile_size, self.tile_size, self.tile_size))
-                draw.rect(self.renderer, (161, 121, 13), pygame.Rect(
-                self.lastcurrentMove[0]*self.tile_size, self.lastcurrentMove[1]*self.tile_size, self.tile_size, self.tile_size))
-            if self.showChess:
-                draw.rect(self.renderer, (161, 18, 13), pygame.Rect(
-                    self.chessKing[0]*self.tile_size, self.chessKing[1]*self.tile_size, self.tile_size, self.tile_size))
+            if not self.currentChoose:
+                coord = self.mouse_coord()
+                draw.rect(self.renderer, (190, 140, 90), pygame.Rect(
+                    coord[0], coord[1], self.tile_size, self.tile_size))
+                self.draw_rect(coord[0], coord[1], self.tile_size)
                 
-            self.draw_chess()
-            if self.currentAction:
-                self.draw_actions()
+                if self.showMove:
+                    draw.rect(self.renderer, (217, 162, 13), pygame.Rect(
+                    self.currentMove[0]*self.tile_size, self.currentMove[1]*self.tile_size, self.tile_size, self.tile_size))
+                    draw.rect(self.renderer, (161, 121, 13), pygame.Rect(
+                    self.lastcurrentMove[0]*self.tile_size, self.lastcurrentMove[1]*self.tile_size, self.tile_size, self.tile_size))
+                if self.showChess:
+                    draw.rect(self.renderer, (161, 18, 13), pygame.Rect(
+                        self.chessKing[0]*self.tile_size, self.chessKing[1]*self.tile_size, self.tile_size, self.tile_size))
+                    
+                self.draw_chess(self.grid)
+                if self.currentAction:
+                    self.draw_actions()
+            else:
+                tmp = []
+                self.fill_grid(tmp)
+                self.init_grid(tmp)
+                tmp[0][0] = Rook(not self.currentAction,[0,0])
+                tmp[1][0] = Knight(not self.currentAction,[1,0])
+                tmp[2][0] = Bishop(not self.currentAction,[2,0])
+                tmp[3][0] = Queen(not self.currentAction,[3,0])
+                self.draw_chess(tmp)
+
+
                 
     def write_info(self):
         f = open("info.log", "w+")
@@ -381,63 +399,84 @@ class Chess(Game):
                 if evt.key == pygame.K_i:
                     self.write_info()
             if evt.type == pygame.MOUSEBUTTONDOWN:
-                if not self.currentAction:
-                    self.currentItem = self.mouse_get_grid()
-                    if self.currentItem.type != ChessItemType.EMPTY and self.whiteAction == self.currentItem.white:
-                        self.currentAction =True
-                        self.actions = self.currentItem.get_actions(self.grid)
-                        if len(self.actions) == 0:
+                if self.currentChoose:
+                    coord = self.mouse_coord()
+                    position = [int(coord[0]/self.tile_size),int(coord[1]/self.tile_size)]
+                    white = self.grid[self.choosePosition[0]][self.choosePosition[1]].white
+                    x = position[0]
+                    if x == 0 or x == 7:
+                        self.grid[self.choosePosition[0]][self.choosePosition[1]] = Rook(white,self.choosePosition)
+                    elif x == 1 or x == 6:
+                        self.grid[self.choosePosition[0]][self.choosePosition[1]] = Knight(white,self.choosePosition)
+                    elif x ==2 or x == 5:
+                        self.grid[self.choosePosition[0]][self.choosePosition[1]] = Bishop(white,self.choosePosition)
+                    elif x ==3 or x==4:
+                         self.grid[self.choosePosition[0]][self.choosePosition[1]] = Queen(white,self.choosePosition)
+
+                    
+                    self.choosePosition = [-1,-1]
+                    self.currentChoose = False
+                else:
+                    if not self.currentAction:
+                        self.currentItem = self.mouse_get_grid()
+                        if self.currentItem.type != ChessItemType.EMPTY and self.whiteAction == self.currentItem.white:
+                            self.currentAction =True
+                            self.actions = self.currentItem.get_actions(self.grid)
+                            if len(self.actions) == 0:
+                                self.currentAction = False
+                                self.actions = []
+                                self.currentItem = Empty()
+                    else:
+                        wasChess = self.isChess(self.whiteAction,self.grid)
+                        
+
+                        i=0
+                        index=-1
+                        for act in self.actions:
+                            pos = [act.position[0]*self.tile_size,act.position[1]*self.tile_size]
+                            if pos == self.mouse_coord():
+                                index=i
+                                break
+                            i+=1
+
+                        if index != -1 and self.currentItem.type != ChessItemType.EMPTY:
+                            tmpCurrentMove = self.currentItem.position
+                            last_grid = deepcopy(self.grid)
+                            g=self.currentItem.do_action(self.actions[index],self.grid)
+                            if wasChess and self.isChess(self.whiteAction,g):
+                                # action invalid
+                                self.grid = deepcopy(last_grid)
+                            else:
+                                if not self.isChess(self.whiteAction,g): 
+                                    self.chessKing = [-1,-1]
+                                    self.currentTimerTime = 0
+                                    # valid action
+                                    if g != None:
+                                        self.grid = g
+                                        if self.currentItem.type == ChessItemType.Pawn and self.currentItem.chooseActive:
+                                            self.currentChoose = True
+                                            self.choosePosition = self.currentItem.position
+                                    self.whiteAction = not self.whiteAction
+                                    self.currentMove = self.currentItem.position
+                                    self.lastcurrentMove = tmpCurrentMove
+
+                                    # update chessKing position
+                                    self.isChess(self.whiteAction, self.grid)
+                                    if self.MatchEnd(self.whiteAction,self.grid):
+                                        self.gameStop = True
+                                else:
+                                    self.grid = deepcopy(last_grid)
+
+                            self.update_grid()
                             self.currentAction = False
                             self.actions = []
                             self.currentItem = Empty()
-                else:
-                    wasChess = self.isChess(self.whiteAction,self.grid)
-                    
-
-                    i=0
-                    index=-1
-                    for act in self.actions:
-                        pos = [act.position[0]*self.tile_size,act.position[1]*self.tile_size]
-                        if pos == self.mouse_coord():
-                            index=i
-                            break
-                        i+=1
-
-                    if index != -1 and self.currentItem.type != ChessItemType.EMPTY:
-                        tmpCurrentMove = self.currentItem.position
-                        last_grid = deepcopy(self.grid)
-                        g=self.currentItem.do_action(self.actions[index],self.grid)
-                        if wasChess and self.isChess(self.whiteAction,g):
-                            # action invalid
-                            self.grid = deepcopy(last_grid)
                         else:
-                            if not self.isChess(self.whiteAction,g): 
-                                self.chessKing = [-1,-1]
-                                self.currentTimerTime = 0
-                                # valid action
-                                if g != None:
-                                    self.grid = g
-                                self.whiteAction = not self.whiteAction
-                                self.currentMove = self.currentItem.position
-                                self.lastcurrentMove = tmpCurrentMove
-
-                                # update chessKing position
-                                self.isChess(self.whiteAction, self.grid)
-                                if self.MatchEnd(self.whiteAction,self.grid):
-                                    self.gameStop = True
-                            else:
-                                self.grid = deepcopy(last_grid)
-
-                        self.update_grid()
-                        self.currentAction = False
-                        self.actions = []
-                        self.currentItem = Empty()
-                    else:
-                        
-                        #click out
-                        self.currentAction = False
-                        self.actions = []
-                        self.currentItem = Empty()
+                            
+                            #click out
+                            self.currentAction = False
+                            self.actions = []
+                            self.currentItem = Empty()
         if not self.gameStop:
             tmpTitle = self.winTitle
             if self.showTurn:

@@ -130,6 +130,8 @@ class Pwan(ChessItem):
     def __init__(self, white,top, position):
         self.first_move = False
         self.top = top
+        self.topmost = 7 if top and white else 0
+        self.chooseActive = False
         ChessItem.__init__(self, ChessItemType.Pawn, white, position)
 
     def get_actions(self, grid):
@@ -160,6 +162,8 @@ class Pwan(ChessItem):
         grid[self.position[0]][self.position[1]] = Empty()
         grid[action.position[0]][action.position[1]] = self
         self.position = action.position
+        if self.position[1] == self.topmost:
+            self.chooseActive = True
         return grid
 
 
