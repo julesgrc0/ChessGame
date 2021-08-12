@@ -43,7 +43,7 @@ python main.py
 
 ### Example
 ```cmd
-python3 main.py 1 0 1 700 0 0 1 0 1 0 0
+python main.py 1 0 1 700 0 0 1 0 1 0 0
 ```
 
 > info.log
